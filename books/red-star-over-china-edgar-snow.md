@@ -2,6 +2,8 @@
 title: "Red Star Over China"
 author: "Edgar Snow"
 status: reading
+category: nonfiction
+regions: [china]
 added: 2026-05-03
 started: 2026-05-03
 finished:

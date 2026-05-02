@@ -1,6 +1,6 @@
 # Books
 
-Personal reading log and book-notes repository. Each book has one Markdown file with structured frontmatter plus free-form notes, and `index.md` is a Dataview dashboard.
+Personal reading log and book-notes repository. Each book has one Markdown file with structured frontmatter plus free-form notes, and `index.md` is a hand-authored Dataview dashboard.
 
 ## Structure
 
@@ -22,7 +22,6 @@ Create a new Markdown file in `books/` using `templates/book.md`, verify public 
 
 ```bash
 python3 scripts/books.py validate
-python3 scripts/books.py index
 ```
 
 ## Query The Library
@@ -45,6 +44,8 @@ python3 scripts/books.py archive "Book Title"
 title: "Book Title"
 author: "Author Name"
 status: reading
+category: nonfiction
+regions: []
 added: YYYY-MM-DD
 started: YYYY-MM-DD
 finished:
@@ -66,3 +67,4 @@ isbn:
 ```
 
 Allowed statuses are `reading`, `finished`, `archived`, `paused`, `wishlist`, and `recommended`.
+Allowed categories are `fiction` and `nonfiction`. Use `regions: [china]` for China-focused books so the dashboard can place them in the dedicated nonfiction section.

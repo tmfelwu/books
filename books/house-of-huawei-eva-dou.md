@@ -2,6 +2,8 @@
 title: "House of Huawei"
 author: "Eva Dou"
 status: recommended
+category: nonfiction
+regions: [china, united-states]
 added: 2026-05-03
 started:
 finished:

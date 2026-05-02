@@ -2,6 +2,8 @@
 title: "Apple in China"
 author: "Patrick McGee"
 status: wishlist
+category: nonfiction
+regions: [china, united-states]
 added: 2026-05-03
 started:
 finished:

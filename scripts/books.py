@@ -14,12 +14,13 @@ from difflib import get_close_matches
 
 ROOT = Path(__file__).resolve().parents[1]
 BOOKS_DIR = ROOT / "books"
-INDEX_PATH = ROOT / "index.md"
 
 REQUIRED_KEYS = [
     "title",
     "author",
     "status",
+    "category",
+    "regions",
     "added",
     "started",
     "finished",
@@ -39,9 +40,8 @@ REQUIRED_KEYS = [
     "isbn",
 ]
 ALLOWED_STATUSES = {"reading", "finished", "archived", "paused", "wishlist", "recommended"}
+ALLOWED_CATEGORIES = {"fiction", "nonfiction"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-START_MARKER = "<!-- BOOKS_INDEX:START -->"
-END_MARKER = "<!-- BOOKS_INDEX:END -->"
 
 
 @dataclass(frozen=True)
@@ -60,6 +60,15 @@ class Book:
     @property
     def status(self) -> str:
         return str(self.data.get("status") or "")
+
+    @property
+    def category(self) -> str:
+        return str(self.data.get("category") or "")
+
+    @property
+    def regions(self) -> list[str]:
+        value = self.data.get("regions")
+        return value if isinstance(value, list) else []
 
     @property
     def added(self) -> str:
@@ -226,6 +235,8 @@ def validate_book(book: Book) -> list[str]:
         errors.append(f"{relative}: author is required")
     if book.status not in ALLOWED_STATUSES:
         errors.append(f"{relative}: invalid status {book.status!r}")
+    if book.category not in ALLOWED_CATEGORIES:
+        errors.append(f"{relative}: invalid category {book.category!r}")
 
     if not book.added:
         errors.append(f"{relative}: added is required")
@@ -243,6 +254,14 @@ def validate_book(book: Book) -> list[str]:
 
     if not isinstance(book.data.get("tags"), list):
         errors.append(f"{relative}: tags must be an inline list, for example [fiction, india]")
+    if not isinstance(book.data.get("regions"), list):
+        errors.append(f"{relative}: regions must be an inline list, for example [china]")
+    else:
+        for region in book.regions:
+            if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(region)):
+                errors.append(
+                    f"{relative}: regions must use lowercase kebab-case values, got {region!r}"
+                )
     if not isinstance(book.data.get("subjects"), list):
         errors.append(f"{relative}: subjects must be an inline list, for example [history, china]")
 
@@ -286,101 +305,8 @@ def format_table(books: list[Book]) -> str:
     return "\n".join(lines)
 
 
-def build_index_body(books: list[Book]) -> str:
-    return """## Summary
-
-```dataview
-TABLE length(rows) AS Count
-FROM "books"
-GROUP BY status AS Status
-SORT Status ASC
-```
-
-## Current Reading
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, started AS Started, format AS Format, reading_location AS Location, tags AS Tags
-FROM "books"
-WHERE status = "reading"
-SORT started DESC, title ASC
-```
-
-## Paused
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, started AS Started, tags AS Tags
-FROM "books"
-WHERE status = "paused"
-SORT started DESC, title ASC
-```
-
-## Recommendations
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, added AS Added, recommended_by AS "Recommended By", recommended_on AS "Recommended On", recommendation_note AS Note
-FROM "books"
-WHERE status = "recommended" OR recommended_by
-SORT added DESC, title ASC
-```
-
-## Recently Added
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, status AS Status, added AS Added, recommended_by AS "Recommended By"
-FROM "books"
-WHERE added
-SORT added DESC, title ASC
-LIMIT 20
-```
-
-## Recently Finished
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, finished AS Finished, rating AS Rating, tags AS Tags
-FROM "books"
-WHERE status = "finished"
-SORT finished DESC, title ASC
-LIMIT 20
-```
-
-## Wishlist
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, added AS Added, recommended_by AS "Recommended By", tags AS Tags
-FROM "books"
-WHERE status = "wishlist"
-SORT added DESC, title ASC
-```
-
-## All Books
-
-```dataview
-TABLE WITHOUT ID file.link AS Book, author AS Author, status AS Status, added AS Added, started AS Started, finished AS Finished, rating AS Rating, format AS Format, reading_location AS Location, tags AS Tags
-FROM "books"
-SORT added DESC, title ASC
-```
-"""
-
-
 def update_index(_: argparse.Namespace) -> int:
-    books = load_books()
-    body = build_index_body(books)
-    generated = f"{START_MARKER}\n{body}\n{END_MARKER}"
-
-    if INDEX_PATH.exists():
-        current = INDEX_PATH.read_text(encoding="utf-8")
-    else:
-        current = "# Reading Index\n\n"
-
-    if START_MARKER in current and END_MARKER in current:
-        before, rest = current.split(START_MARKER, 1)
-        _, after = rest.split(END_MARKER, 1)
-        next_text = before + generated + after
-    else:
-        next_text = current.rstrip() + "\n\n" + generated + "\n"
-
-    INDEX_PATH.write_text(next_text, encoding="utf-8")
-    print(f"Updated {INDEX_PATH.relative_to(ROOT)}.")
+    print("index.md is hand-authored; no changes made.")
     return 0
 
 
@@ -506,7 +432,7 @@ def main() -> int:
     validate_parser = subparsers.add_parser("validate", help="validate all book files")
     validate_parser.set_defaults(func=validate)
 
-    index_parser = subparsers.add_parser("index", help="regenerate index.md")
+    index_parser = subparsers.add_parser("index", help="deprecated no-op; index.md is hand-authored")
     index_parser.set_defaults(func=update_index)
 
     list_parser = subparsers.add_parser("list", help="list books")

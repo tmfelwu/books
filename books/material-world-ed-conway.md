@@ -2,6 +2,8 @@
 title: "Material World"
 author: "Ed Conway"
 status: recommended
+category: nonfiction
+regions: []
 added: 2026-05-03
 started:
 finished:

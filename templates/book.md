@@ -2,6 +2,8 @@
 title: ""
 author: ""
 status: reading
+category:
+regions: []
 added:
 started:
 finished:

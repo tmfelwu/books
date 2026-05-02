@@ -5,9 +5,9 @@ Be extremely precise. Preserve the Markdown/frontmatter structure because this r
 ## Repository Shape
 
 - `books/` contains one Markdown file per book.
-- `index.md` is the human-readable dashboard for current reading, recommended books, recently added books, finished books, paused books, wishlist items, and the full library.
+- `index.md` is a hand-authored Dataview dashboard for current reading, fiction, nonfiction, China-focused nonfiction, recommended books, recently added books, finished books, paused books, wishlist items, and the full library.
 - `templates/book.md` is the template for new book files.
-- `scripts/books.py` validates book files and regenerates the index.
+- `scripts/books.py` validates and queries book files. It must not rewrite `index.md`.
 - `AGENTS.md` must point to this file.
 
 ## Book File Rules
@@ -25,6 +25,8 @@ Every book file must start with YAML-style frontmatter using this schema:
 title: "Book Title"
 author: "Author Name"
 status: reading
+category: nonfiction
+regions: []
 added: YYYY-MM-DD
 started: YYYY-MM-DD
 finished:
@@ -54,6 +56,11 @@ Allowed `status` values:
 - `wishlist`
 - `recommended`
 
+Allowed `category` values:
+
+- `fiction`
+- `nonfiction`
+
 Date rules:
 
 - Use `YYYY-MM-DD`.
@@ -67,11 +74,16 @@ Date rules:
 Metadata rules:
 
 - `title`, `author`, `published`, `publisher`, `pages`, `subjects`, `source`, and `isbn` are public bibliographic metadata.
+- `category` and `regions` are dashboard classification metadata.
 - `status`, `added`, `started`, `finished`, `archived`, `rating`, `tags`, `format`, `reading_location`, `recommended_by`, `recommended_on`, and `recommendation_note` are personal tracking metadata.
+- `category` powers the dashboard split between fiction and nonfiction. Always fill it.
+- `regions` powers regional dashboard sections. Use lowercase kebab-case region slugs such as `[china]`, `[united-states]`, or `[china, united-states]`. Leave it as `[]` if the book does not have a strong geographic focus.
+- For China-focused nonfiction, set `category: nonfiction` and include `china` in `regions`.
 - When creating a book, search online for the likely book and use reputable bibliographic sources such as the publisher, Open Library, WorldCat, a national library catalog, or Google Books.
 - Prefer publisher metadata when available for edition-specific fields such as `publisher`, `published`, `pages`, and `isbn`.
 - Put the URL used for bibliographic metadata in `source`.
 - Fill public metadata only when it is verified by the source used. Leave conflicting or uncertain fields blank and note the uncertainty under `## Book Info`.
+- Classify `category` and `regions` from the verified bibliographic description when it is clear.
 - Do not infer personal reading metadata from online sources.
 
 Tracking rules:
@@ -83,6 +95,8 @@ Tracking rules:
 - If a book is recommended and the user has already started reading it, use `status: reading`, fill `started`, and still preserve the recommendation fields.
 - `format` records the reading format, for example `epub`, `paperback`, `hardcover`, `audiobook`, `pdf`, or `web`.
 - `reading_location` records where the user reads or accesses it, for example `Kindle`, `Apple Books`, `Libby`, `Audible`, `local EPUB`, a store/library name, or a filesystem path if provided.
+- `subjects` records topical bibliographic subjects. Keep it broader than `regions`; for example a China business book may use `subjects: [business, technology, geopolitics]` and `regions: [china, united-states]`.
+- Keep `index.md` hand-authored. Update its Dataview queries directly when the dashboard structure changes.
 
 Content rules:
 
@@ -102,24 +116,25 @@ When the user says "add a book":
 - Search online for the likely book.
 - Resolve title/author ambiguity before writing the file. If the user gives a slightly wrong title and the intended book is clear, use the verified title and mention the correction.
 - Fill public bibliographic fields from the best source found.
+- Fill `category` as `fiction` or `nonfiction`.
+- Fill `regions` when the book has a clear geographic focus, especially `china` for China-focused books.
 - Fill personal reading fields only from user-provided facts or the local date rule below.
 - Set `added` to today's local date unless the user provides a different date for when the record should be added.
 - If the start date is not provided and the user implies they are starting now, use today's local date.
 - Add a short sourced bullet under `## Book Info` naming the metadata source and edition when applicable.
 - Run `python3 scripts/books.py validate`.
-- Run `python3 scripts/books.py index`.
 
 When the user says someone recommended, mentioned, or told them about a book:
 
 - Create the book file if it does not already exist.
 - Search online for the likely book and fill public bibliographic fields from the best source found.
 - Use `status: recommended` unless the user says they want to read it, are reading it, have finished it, or want another explicit status.
+- Fill `category` as `fiction` or `nonfiction`, and fill `regions` when the recommendation has a clear geographic focus.
 - Set `added` to today's local date unless the user provides a different added date.
 - Fill `recommended_by` with the person, podcast, article, video, class, or source that recommended it when known.
 - Fill `recommended_on` with the date of the recommendation when provided; otherwise use today's local date if the recommendation is happening now.
 - Put any extra recommendation context in `recommendation_note`.
 - Run `python3 scripts/books.py validate`.
-- Run `python3 scripts/books.py index`.
 
 When the user says "add a note to a book":
 
@@ -127,14 +142,12 @@ When the user says "add a note to a book":
 - Append the note under `## Notes` as a dated bullet.
 - Do not rewrite unrelated content.
 - Run `python3 scripts/books.py validate`.
-- Run `python3 scripts/books.py index`.
 
 When the user says "mark a book as finished":
 
 - Run `python3 scripts/books.py finish "<book>"`.
 - Pass `--date YYYY-MM-DD` if the user provides a finish date.
 - Run `python3 scripts/books.py validate`.
-- Run `python3 scripts/books.py index`.
 
 When the user says "archive a book":
 
@@ -142,7 +155,6 @@ When the user says "archive a book":
 - Pass `--date YYYY-MM-DD` if the user provides an archive date.
 - Preserve notes and explain that archived means intentionally stopped or removed from active tracking.
 - Run `python3 scripts/books.py validate`.
-- Run `python3 scripts/books.py index`.
 
 When the user asks reading-history questions:
 
@@ -153,7 +165,6 @@ Useful commands:
 
 ```bash
 python3 scripts/books.py validate
-python3 scripts/books.py index
 python3 scripts/books.py list --status reading
 python3 scripts/books.py list --status recommended
 python3 scripts/books.py recent-added --limit 20

@@ -2,6 +2,8 @@
 title: "The Goldfinch"
 author: "Donna Tartt"
 status: recommended
+category: fiction
+regions: []
 added: 2026-05-03
 started:
 finished:

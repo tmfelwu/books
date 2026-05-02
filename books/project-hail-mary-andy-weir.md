@@ -2,6 +2,8 @@
 title: "Project Hail Mary"
 author: "Andy Weir"
 status: wishlist
+category: fiction
+regions: []
 added: 2026-05-03
 started:
 finished:
