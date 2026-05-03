@@ -164,13 +164,23 @@
               "icon": "lucide-list",
               "title": "Outline of CLAUDE"
             }
+          },
+          {
+            "id": "9d91dbf6bba71cd8",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
           }
         ],
-        "currentTab": 4
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 377.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -180,20 +190,23 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "obsidian-git:Open Git source control": false
     }
   },
-  "active": "cd6dfe5fc93699a2",
+  "active": "9d91dbf6bba71cd8",
   "lastOpenFiles": [
     "AGENTS.md",
-    "CLAUDE.md",
-    "templates/book.md",
-    "books/apple-in-china-patrick-mcgee.md",
     "index.md",
     "books/material-world-ed-conway.md",
-    "books/house-of-huawei-eva-dou.md",
-    "books/the-goldfinch-donna-tartt.md",
+    "books/project-hail-mary-andy-weir.md",
     "books/red-star-over-china-edgar-snow.md",
+    "books/the-goldfinch-donna-tartt.md",
+    "CLAUDE.md",
+    "scripts/setup-books-agent.sh",
+    "templates/book.md",
+    "books/apple-in-china-patrick-mcgee.md",
+    "books/house-of-huawei-eva-dou.md",
     "scripts/__pycache__/books.cpython-314.pyc",
     "scripts/__pycache__"
   ]
