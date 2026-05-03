@@ -144,27 +144,44 @@ The vault ships its own `CLAUDE.md` at the repo root with the full schema, statu
 
 ## Git workflow (NON-NEGOTIABLE)
 
-**A change that isn't pushed to GitHub does not exist.** The user accesses this vault from multiple devices via git — anything you leave in the working tree is invisible to them.
+The user accesses this vault from multiple devices via git. Other devices may have edited the repo since your last turn, and **anything you leave in the working tree without pushing is invisible to them.** Both directions of sync are your responsibility, every single turn.
 
-Run these commands as a single atomic block at the END of every turn that modifies any file under `/workspace/extra/books`. Do not skip. Do not defer. Do not assume the user will do it. If any step fails, stop and tell the user the exact error.
+### Step 1 — Always pull, before doing ANYTHING else
+
+The very first action of every turn — before reading, listing, searching, editing, or even thinking about what the user asked — run:
 
 ```bash
 cd /workspace/extra/books
-git pull --ff-only                          # MUST be done before edits, but re-run is safe
-# ... your edits already happened ...
-[ -x scripts/books.py ] && python3 scripts/books.py    # regenerate index if script exists
-git add -A                                   # stage everything you touched (including index.md)
-git status --short                           # sanity print — should show staged changes only
+git pull --ff-only
+```
+
+No exceptions. Even if the user just asked "what's in my wishlist?" — pull first. The user may have added a book from their phone five seconds ago. Stale reads are bugs.
+
+If `git pull` fails (conflict, non-fast-forward, network, auth), STOP. Do not proceed with the user's request. Report the exact error and wait for instructions — do not attempt resolution.
+
+### Step 2 — Make the changes
+
+Edit files normally.
+
+### Step 3 — If (and only if) you modified files, commit + push before responding
+
+At the END of any turn that touched any file under `/workspace/extra/books`:
+
+```bash
+cd /workspace/extra/books
+[ -x scripts/books.py ] && python3 scripts/books.py index    # regenerate index
+git add -A
+git status --short                           # sanity: should list your staged changes
 git commit -m "<action> \"<title>\""         # e.g. add "Project Hail Mary" to wishlist
-git push                                     # ← if you skip this, the change is LOST to other devices
+git push                                     # ← skipping this LOSES the change to other devices
 git status --short                           # MUST print nothing. If it prints anything, something failed — report it.
 ```
 
-Before you tell the user "done", confirm you ran `git push` successfully and `git status --short` is empty. Saying "added the book" without a push is a bug — treat it the same as not doing the work at all.
+Before telling the user "done", confirm `git push` succeeded and the final `git status --short` is empty. Saying "added the book" without a successful push is a bug — treat it the same as not doing the work at all.
 
-**Pull-first rule:** `git pull --ff-only` MUST run before reading or editing — the user may have edited from another device. If the pull fails (conflict, non-fast-forward), stop and surface the error to the user; do not attempt resolution.
+For pure-read turns (no files modified), skip step 3 entirely — there's nothing to commit.
 
-**SSH auth:** uses a dedicated deploy key, wired via `core.sshCommand` in the repo's `.git/config`. If you see `Permission denied (publickey)`, stop and tell the user — the deploy key was not added on GitHub.
+**SSH auth** uses a dedicated deploy key, wired via `core.sshCommand` in the repo's `.git/config`. If you see `Permission denied (publickey)`, stop and tell the user — the deploy key was not added on GitHub.
 
 ## Telegram interaction
 
